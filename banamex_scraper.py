@@ -22,6 +22,10 @@ def get_dollar_rate():
         options=chrome_options
     )
     
+     #Initialize variables for rates
+    sell_rate_usd = None
+    sell_rate_eur = None
+        
     try:
         # Navigate to the Banamex exchange rates page
         driver.get('https://www.banamex.com/economia-finanzas/es/mercado-de-divisas/index.html')
@@ -33,34 +37,37 @@ def get_dollar_rate():
         wait = WebDriverWait(driver, 30)
         
         # Try different selectors if one fails
-        selectors = [
-            "//p[@ndivisa='usd_ven']",
-            "//td[contains(.,'Dólar')]//following::td[2]//p",
-            "//p[@class='adp-h6'][@ndivisa='usd_ven']"
-        ]
-        
-        sell_rate = None
-        for selector in selectors:
+        selectors = {
+            'usd_ven': "//p[@ndivisa='usd_ven']",
+            'euro_ven': "//p[@ndivisa='euro_ven']"
+        }
+                
+        for currency, selector in selectors.items():
             try:
-                sell_rate_element = wait.until(
+                rate_element = wait.until(
                     EC.presence_of_element_located((By.XPATH, selector))
                 )
-                sell_rate = sell_rate_element.text.strip()
-                if sell_rate:
-                    break
+                if rate_element:
+                    rate = rate_element.text.strip()
+                    if currency == 'usd_ven':
+                        sell_rate_usd = rate
+                    elif currency == 'euro_ven':
+                        sell_rate_eur = rate
             except Exception:
+                print(f"Failed to locate {currency} with selector: {selector}")
                 continue
+
+
+        if not sell_rate_usd or not sell_rate_eur:
+            # If any rate is missing, raise an exception
+            print("Missing exchange rate(s).")
+            raise Exception("Could not find all required exchange rates.")
                 
-        if not sell_rate:
-            # If all selectors fail, try to get page source for debugging
-            print("Page source:", driver.page_source)
-            raise Exception("Could not find exchange rate with any selector")
-            
-        return sell_rate
+        return sell_rate_usd, sell_rate_eur
 
     except Exception as e:
         print(f"An error occurred: {str(e)}")
-        return None
+        return None, None
 
     finally:
         # Always close the browser
