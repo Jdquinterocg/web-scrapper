@@ -1,3 +1,4 @@
+import os
 from google.oauth2.credentials import Credentials
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -6,7 +7,7 @@ import datetime
 from banamex_scraper import get_dollar_rate
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID'  # You'll need to replace this
+SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')  # Get the spreadsheet ID from environment variables
 RANGE_NAME = 'Sheet1!A:C'  # Updated to include Column C for EUR
 
 def update_sheets(rate_usd, rate_eur):
