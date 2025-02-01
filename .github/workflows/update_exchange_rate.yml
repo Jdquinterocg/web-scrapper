@@ -2,7 +2,7 @@ name: Update Exchange Rate
 
 on:
   schedule:
-    - cron: '0 18 * * *'  # Runs at 18:00 UTC daily
+    - cron: '0 6 * * *'  # Runs at 18:00 UTC daily
   workflow_dispatch:  # Allows manual triggers
 
 jobs:
@@ -33,4 +33,7 @@ jobs:
     - name: Run script
       run: python exchange_rate_to_sheets.py
       env:
-        SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }} 
+        SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+
+    - name: Clean up credentials
+      run: rm -f credentials.json
