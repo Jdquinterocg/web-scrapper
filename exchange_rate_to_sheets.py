@@ -23,8 +23,9 @@ def update_sheets(rate_usd, rate_eur):
         
         # Prepare the data
         today = datetime.datetime.now().strftime('%Y-%m-%d')
+        adjusted_usd = round(float(rate_usd) + 0.50, 4)  # Adding 0.50 to USD rate
         adjusted_eur = round(float(rate_eur) + 0.50, 4)  # Adding 0.50 to EUR rate
-        values = [[today, rate_usd, adjusted_eur]]
+        values = [[today, adjusted_usd, adjusted_eur]]
         
         # Debugging: Print values to ensure correct structure
         print(f"Appending values: {values}")
@@ -42,7 +43,7 @@ def update_sheets(rate_usd, rate_eur):
             body=body
         ).execute()
 
-        print(f"Data updated successfully: {today} - USD: {rate_usd} - EUR: {adjusted_eur}")
+        print(f"Data updated successfully: {today} - USD: {adjusted_usd} - EUR: {adjusted_eur}")
         return True
 
     except HttpError as error:
