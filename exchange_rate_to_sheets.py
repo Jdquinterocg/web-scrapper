@@ -8,7 +8,7 @@ from banamex_scraper import get_dollar_rate
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')  # Get the spreadsheet ID from environment variables
-RANGE_NAME = 'Sheet1!A:C'  # Updated to include Column C for EUR
+RANGE_NAME = 'TRM!A:C'  # Updated to include Column C for EUR
 
 def update_sheets(rate_usd, rate_eur):
     print(rate_usd, rate_eur)
