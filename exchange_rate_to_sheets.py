@@ -36,8 +36,7 @@ def update_sheets(rate_usd, rate_eur):
 
         # Append the data to the sheet
         result = service.spreadsheets().values().append(
-            # spreadsheetId=SPREADSHEET_ID,
-            spreadsheetId="1ZDNRD_S0ngZt3e5h4ELQWcZ7JjXLNQJmX7BbZEgtBZs",
+            spreadsheetId=SPREADSHEET_ID,
             range=RANGE_NAME,
             valueInputOption='USER_ENTERED',
             insertDataOption='INSERT_ROWS',
