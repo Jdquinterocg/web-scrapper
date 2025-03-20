@@ -28,7 +28,18 @@ jobs:
     
     - name: Create credentials file
       run: |
-        echo "${{ secrets.GOOGLE_CREDENTIALS }}" > credentials.json
+        echo '${{ secrets.GOOGLE_CREDENTIALS }}' | base64 --decode > credentials.json
+
+    - name: Verify credentials file
+      run: |
+        if [ ! -s credentials.json ]; then
+          echo "Error: credentials.json is empty"
+          exit 1
+        fi
+        if ! jq empty credentials.json 2>/dev/null; then
+          echo "Error: credentials.json is not valid JSON"
+          exit 1
+        fi
     
     - name: Run script
       run: python exchange_rate_to_sheets.py
@@ -36,4 +47,5 @@ jobs:
         SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
 
     - name: Clean up credentials
+      if: always()
       run: rm -f credentials.json
