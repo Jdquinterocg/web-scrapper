@@ -86,28 +86,29 @@ def get_bbva_rates():
         time.sleep(5)
         wait = WebDriverWait(driver, 30)
 
-        # Buscar directamente las filas por su clase
-        rows = wait.until(
-            EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.converter__rates-table-row"))
+        # Wait for the table to be present
+        table = wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "div.currency-converter-bank-rates table"))
         )
+
+        # Get all rows from the table body
+        rows = table.find_elements(By.CSS_SELECTOR, "tbody tr")
 
         for row in rows:
             try:
-                # Buscar las celdas dentro de la fila
-                cells = row.find_elements(By.CSS_SELECTOR, "div")
-
+                # Get all cells in the row
+                cells = row.find_elements(By.CSS_SELECTOR, "td")
+                
                 if len(cells) >= 3:
-                    currency = cells[0].text
-                    buy_rate = cells[1].text.strip()  # Precio de compra
-                    sell_rate = cells[2].text.strip()  # Precio de venta
+                    currency = cells[0].text.strip()
+                    sell_rate = cells[1].text.strip()  # Precio de venta
+                    buy_rate = cells[2].text.strip()  # Precio de compra
 
                     if "EUR" in currency:
-                        sell_rate_eur = sell_rate.replace(" MXN", "")
-                        # print(f"Found EUR rate (sell): {sell_rate_eur}")
+                        sell_rate_eur = buy_rate.replace(" MXN", "")
                     elif "USD" in currency:
-                        # Para USD usamos el precio de compra ya que está trocado
-                        sell_rate_usd = buy_rate.replace(" MXN", "")
-                        # print(f"Found USD rate (buy): {sell_rate_usd}")
+                        sell_rate_usd = sell_rate.replace(" MXN", "")
+
             except Exception as e:
                 print(f"Error processing row: {str(e)}")
                 continue
