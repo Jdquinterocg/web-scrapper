@@ -82,36 +82,22 @@ def get_bbva_rates():
     sell_rate_eur = None
 
     try:
-        driver.get("https://finmatcher.com/currency-converter/es/tipo-de-cambio-bbva/")
+        # Get USD rate
+        driver.get("https://www.pesomxn.com/dolar-a-peso/bbva-bancomer")
         time.sleep(5)
         wait = WebDriverWait(driver, 30)
+        
+        sell_rate_usd = wait.until(
+            EC.presence_of_element_located((By.ID, "mx-venta"))
+        ).text.strip().replace("$", "").replace(",", "")
 
-        # Wait for the table to be present
-        table = wait.until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.currency-converter-bank-rates table"))
-        )
-
-        # Get all rows from the table body
-        rows = table.find_elements(By.CSS_SELECTOR, "tbody tr")
-
-        for row in rows:
-            try:
-                # Get all cells in the row
-                cells = row.find_elements(By.CSS_SELECTOR, "td")
-                
-                if len(cells) >= 3:
-                    currency = cells[0].text.strip()
-                    sell_rate = cells[1].text.strip()  # Precio de venta
-                    buy_rate = cells[2].text.strip()  # Precio de compra
-
-                    if "EUR" in currency:
-                        sell_rate_eur = buy_rate.replace(" MXN", "")
-                    elif "USD" in currency:
-                        sell_rate_usd = sell_rate.replace(" MXN", "")
-
-            except Exception as e:
-                print(f"Error processing row: {str(e)}")
-                continue
+        # Get EUR rate
+        driver.get("https://www.pesomxn.com/euro-a-peso/bbva-bancomer")
+        time.sleep(5)
+        
+        sell_rate_eur = wait.until(
+            EC.presence_of_element_located((By.ID, "mx-venta"))
+        ).text.strip().replace("$", "").replace(",", "")
 
         return sell_rate_usd, sell_rate_eur
     except Exception as e:
