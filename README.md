@@ -6,6 +6,8 @@ Este proyecto automatiza la obtención de tasas de cambio (dólar y euro) desde 
 ## Características principales
 - **Web scraping**: Extrae las tasas de cambio del sitio web de Banamex.
 - **Integración con Google Sheets**: Actualiza automáticamente una hoja de cálculo con los datos obtenidos.
+- **Notificaciones de Slack**: Envía un mensaje a Slack con las tasas de cambio actualizadas.
+- **Almacenamiento en Supabase**: Guarda las tasas de cambio en una base de datos Supabase para su posterior análisis.
 - **Automatización**: Se ejecuta diariamente o manualmente mediante GitHub Actions.
 - **Seguridad**: Usa secretos de GitHub para proteger las credenciales de la API y el ID de la hoja de cálculo.
 
@@ -18,7 +20,9 @@ Este proyecto automatiza la obtención de tasas de cambio (dólar y euro) desde 
 ## Cómo funciona
 1. El script de Python obtiene las tasas de cambio del sitio web de Banamex.
 2. Los datos se envían a una hoja de cálculo de Google Sheets utilizando la API de Google Sheets.
-3. El proceso se ejecuta automáticamente todos los días a las 18:00 UTC mediante GitHub Actions.
+3. Se envía un mensaje a Slack con las tasas de cambio ajustadas.
+4. Las tasas de cambio se guardan en una base de datos Supabase.
+5. El proceso se ejecuta automáticamente todos los días a las 18:00 UTC mediante GitHub Actions.
 
 ## Instalación y uso
 1. Clona el repositorio.

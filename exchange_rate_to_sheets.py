@@ -44,18 +44,18 @@ def update_sheets(usd_rate, eur_rate, bank):
         body = {"values": values}
 
         # Append the data to the sheet
-        # service.spreadsheets().values().append(
-        #     spreadsheetId=SPREADSHEET_ID,
-        #     range=RANGE_NAME,
-        #     valueInputOption="USER_ENTERED",
-        #     insertDataOption="INSERT_ROWS",
-        #     body=body,
-        # ).execute()
+        service.spreadsheets().values().append(
+            spreadsheetId=SPREADSHEET_ID,
+            range=RANGE_NAME,
+            valueInputOption="USER_ENTERED",
+            insertDataOption="INSERT_ROWS",
+            body=body,
+        ).execute()
 
-        # print(f"Data updated successfully: {today} - USD: {adjusted_usd} - EUR: {adjusted_eur}")
+        print(f"Data updated successfully: {today} - USD: {adjusted_usd} - EUR: {adjusted_eur}")
 
-        # # Guardar en Supabase
-        # save_exchange_rates(usd_rate, eur_rate, bank)
+        # Guardar en Supabase
+        save_exchange_rates(usd_rate, eur_rate, bank)
 
         # Enviar mensaje a Slack
         send_slack_message(adjusted_usd, adjusted_eur)
