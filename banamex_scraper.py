@@ -1,5 +1,6 @@
 import time
 import tempfile
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,6 +9,17 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
+SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"
+
+def send_error_slack_message(error_message):
+    message = f"⚠️ ¡Ups! Algo salió mal al obtener las tasas de cambio:\n\n{error_message}\n\nPor favor, revisa el script lo antes posible. 🚨"
+    payload = {"text": message}
+    try:
+        response = requests.post(SLACK_WEBHOOK_URL, json=payload)
+        response.raise_for_status()
+        print("Error notification sent to Slack")
+    except Exception as e:
+        print(f"Error sending Slack notification: {str(e)}")
 
 def get_banamex_rates():
     # Configure Chrome options
@@ -47,18 +59,26 @@ def get_banamex_rates():
                         sell_rate_usd = rate
                     elif currency == "euro_ven":
                         sell_rate_eur = rate
-            except Exception:
-                print(f"Failed to locate {currency} in Banamex with selector: {selector}")
+            except Exception as e:
+                error_msg = f"Failed to locate {currency} in Banamex with selector: {selector}"
+                print(error_msg)
+                send_error_slack_message(error_msg)
                 continue
+
+        if not sell_rate_usd or not sell_rate_eur:
+            error_msg = "Could not fetch complete rates from Banamex"
+            send_error_slack_message(error_msg)
+            return None, None
 
         return sell_rate_usd, sell_rate_eur
 
     except Exception as e:
-        print(f"An error occurred with Banamex: {str(e)}")
+        error_msg = f"An error occurred with Banamex: {str(e)}"
+        print(error_msg)
+        send_error_slack_message(error_msg)
         return None, None
     finally:
         driver.quit()
-
 
 def get_bbva_rates():
     chrome_options = Options()
@@ -99,20 +119,25 @@ def get_bbva_rates():
             EC.presence_of_element_located((By.ID, "mx-venta"))
         ).text.strip().replace("$", "").replace(",", "")
 
+        if not sell_rate_usd or not sell_rate_eur:
+            error_msg = "Could not fetch complete rates from BBVA"
+            send_error_slack_message(error_msg)
+            return None, None
+
         return sell_rate_usd, sell_rate_eur
     except Exception as e:
-        print(f"An error occurred with BBVA: {str(e)}")
+        error_msg = f"An error occurred with BBVA: {str(e)}"
+        print(error_msg)
+        send_error_slack_message(error_msg)
         return None, None
     finally:
         driver.quit()
-
 
 def get_dollar_rate():
     # Uncomment the source you want to use:
     # return get_banamex_rates()
     usd_rate, eur_rate = get_bbva_rates()
     return usd_rate, eur_rate, "BBVA"
-
 
 if __name__ == "__main__":
     print("Fetching exchange rates...")
@@ -122,4 +147,6 @@ if __name__ == "__main__":
         print(f"EUR sell rate: {eur_rate}")
         print(f"Bank: {bank_name}")
     else:
-        print("Failed to fetch the exchange rates")
+        error_msg = "Failed to fetch the exchange rates"
+        print(error_msg)
+        send_error_slack_message(error_msg)

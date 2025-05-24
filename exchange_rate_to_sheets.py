@@ -1,5 +1,6 @@
 import os
 import datetime
+import requests
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -9,6 +10,18 @@ from supabase_client import save_exchange_rates
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 RANGE_NAME = "TRM!A:C"  # Updated to include Column C for EUR
+SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
+
+
+def send_slack_message(usd_rate, eur_rate):
+    message = f"¡Buenos días Fikanauta! 🌞\n\nCon la precisión de un reloj suizo, pero con el sabor de un café colombiano ☕, les traigo las tasas de cambio ajustadas para hoy:\n\n💵 USD: {usd_rate}\n💶 EUR: {eur_rate}\n\n¡Que tengan un día 20/10! ✨"
+    payload = {"text": message}
+    try:
+        response = requests.post(SLACK_WEBHOOK_URL, json=payload)
+        response.raise_for_status()
+        print("Slack message sent successfully")
+    except Exception as e:
+        print(f"Error sending Slack message: {str(e)}")
 
 
 def update_sheets(usd_rate, eur_rate, bank):
@@ -43,6 +56,9 @@ def update_sheets(usd_rate, eur_rate, bank):
 
         # Guardar en Supabase
         save_exchange_rates(usd_rate, eur_rate, bank)
+
+        # Enviar mensaje a Slack
+        send_slack_message(adjusted_usd, adjusted_eur)
 
         return True
 

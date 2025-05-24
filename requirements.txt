@@ -6,3 +6,4 @@ google-auth-oauthlib
 supabase
 pylint==3.0.3
 black==24.1.1 
+requests
