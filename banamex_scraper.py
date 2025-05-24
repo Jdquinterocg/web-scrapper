@@ -1,3 +1,4 @@
+import os
 import time
 import tempfile
 import requests
@@ -9,7 +10,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
-SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"
+SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 
 def send_error_slack_message(error_message):
     message = f"⚠️ ¡Ups! Algo salió mal al obtener las tasas de cambio:\n\n{error_message}\n\nPor favor, revisa el script lo antes posible. 🚨"
