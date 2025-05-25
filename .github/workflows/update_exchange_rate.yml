@@ -47,6 +47,7 @@ jobs:
         SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     - name: Clean up credentials
       if: always()
