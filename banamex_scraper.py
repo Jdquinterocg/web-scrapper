@@ -1,7 +1,9 @@
+# Import necessary modules
 import os
 import time
 import tempfile
 import requests
+# Selenium imports for browser automation
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,8 +12,11 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Get Slack webhook URL from environment variable
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
 
+# Function to send error messages to Slack
+# Used for alerting when something goes wrong in the scraping process
 def send_error_slack_message(error_message):
     message = f"⚠️ ¡Ups! Algo salió mal al obtener las tasas de cambio:\n\n{error_message}\n\nPor favor, revisa el script lo antes posible. 🚨"
     payload = {"text": message}
@@ -22,8 +27,9 @@ def send_error_slack_message(error_message):
     except Exception as e:
         print(f"Error sending Slack notification: {str(e)}")
 
+# Scrapes Banamex website for USD and EUR sell rates
 def get_banamex_rates():
-    # Configure Chrome options
+    # Configure Chrome options for headless browsing
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
@@ -34,9 +40,11 @@ def get_banamex_rates():
     )
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
+    # Use a temporary user data directory for Chrome
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
+    # Start Chrome WebDriver
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()), options=chrome_options
     )
@@ -45,12 +53,15 @@ def get_banamex_rates():
     sell_rate_eur = None
 
     try:
+        # Open Banamex exchange rates page
         driver.get("https://www.banamex.com/economia-finanzas/es/mercado-de-divisas/index.html")
-        time.sleep(5)
+        time.sleep(5)  # Wait for page to load
         wait = WebDriverWait(driver, 30)
 
+        # Define XPaths for USD and EUR sell rates
         selectors = {"usd_ven": "//p[@ndivisa='usd_ven']", "euro_ven": "//p[@ndivisa='euro_ven']"}
 
+        # Loop through selectors to extract rates
         for currency, selector in selectors.items():
             try:
                 rate_element = wait.until(EC.presence_of_element_located((By.XPATH, selector)))
@@ -66,11 +77,13 @@ def get_banamex_rates():
                 send_error_slack_message(error_msg)
                 continue
 
+        # If any rate is missing, send error and return None
         if not sell_rate_usd or not sell_rate_eur:
             error_msg = "Could not fetch complete rates from Banamex"
             send_error_slack_message(error_msg)
             return None, None
 
+        # Return both rates if successful
         return sell_rate_usd, sell_rate_eur
 
     except Exception as e:
@@ -79,8 +92,9 @@ def get_banamex_rates():
         send_error_slack_message(error_msg)
         return None, None
     finally:
-        driver.quit()
+        driver.quit()  # Always close the browser
 
+# Scrapes BBVA rates from a third-party aggregator (pesomxn.com)
 def get_bbva_rates():
     chrome_options = Options()
     chrome_options.add_argument("--headless")
@@ -92,9 +106,11 @@ def get_bbva_rates():
     )
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
+    # Use a temporary user data directory for Chrome
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
 
+    # Start Chrome WebDriver
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()), options=chrome_options
     )
@@ -103,16 +119,16 @@ def get_bbva_rates():
     sell_rate_eur = None
 
     try:
-        # Get USD rate
+        # Get USD rate from BBVA page on pesomxn.com
         driver.get("https://www.pesomxn.com/dolar-a-peso/bbva-bancomer")
-        time.sleep(5)
+        time.sleep(5)  # Wait for page to load
         wait = WebDriverWait(driver, 30)
         
         sell_rate_usd = wait.until(
             EC.presence_of_element_located((By.ID, "mx-venta"))
         ).text.strip().replace("$", "").replace(",", "")
 
-        # Get EUR rate
+        # Get EUR rate from BBVA page on pesomxn.com
         driver.get("https://www.pesomxn.com/euro-a-peso/bbva-bancomer")
         time.sleep(5)
         
@@ -120,11 +136,13 @@ def get_bbva_rates():
             EC.presence_of_element_located((By.ID, "mx-venta"))
         ).text.strip().replace("$", "").replace(",", "")
 
+        # If any rate is missing, send error and return None
         if not sell_rate_usd or not sell_rate_eur:
             error_msg = "Could not fetch complete rates from BBVA"
             send_error_slack_message(error_msg)
             return None, None
 
+        # Return both rates if successful
         return sell_rate_usd, sell_rate_eur
     except Exception as e:
         error_msg = f"An error occurred with BBVA: {str(e)}"
@@ -132,14 +150,17 @@ def get_bbva_rates():
         send_error_slack_message(error_msg)
         return None, None
     finally:
-        driver.quit()
+        driver.quit()  # Always close the browser
 
+# Main function to get the dollar and euro sell rates
+# Currently uses BBVA as the source (can switch to Banamex by uncommenting)
 def get_dollar_rate():
     # Uncomment the source you want to use:
     # return get_banamex_rates()
     usd_rate, eur_rate = get_bbva_rates()
     return usd_rate, eur_rate, "BBVA"
 
+# If run as a script, fetch and print the rates, or send error to Slack
 if __name__ == "__main__":
     print("Fetching exchange rates...")
     usd_rate, eur_rate, bank_name = get_dollar_rate()
