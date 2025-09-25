@@ -87,6 +87,7 @@ def get_banamex_rates():
         return sell_rate_usd, sell_rate_eur
 
     except Exception as e:
+        # Throws error
         error_msg = f"An error occurred with Banamex: {str(e)}"
         print(error_msg)
         send_error_slack_message(error_msg)
