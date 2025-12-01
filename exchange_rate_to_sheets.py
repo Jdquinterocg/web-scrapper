@@ -19,7 +19,7 @@ def send_slack_message(usd_rate, eur_rate):
     try:
         response = requests.post(SLACK_WEBHOOK_URL, json=payload)
         response.raise_for_status()
-        print("Slack message sent successfully")
+        print("Slack message sent successfully!!")
     except Exception as e:
         print(f"Error sending Slack message: {str(e)}")
 
