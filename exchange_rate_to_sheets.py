@@ -33,7 +33,7 @@ def update_sheets(usd_rate, eur_rate, bank):
         service = build("sheets", "v4", credentials=creds)
 
         # Prepare the data
-        today = datetime.datetime.now().strftime("%Y-%m-%d")
+        today = datetime.datetime.now().strftime("%d-%m-%Y")
         adjusted_usd = round(float(usd_rate) + 0.50, 4)  # Adding 0.50 to USD rate
         adjusted_eur = round(float(eur_rate) + 0.50, 4)  # Adding 0.50 to EUR rate
         values = [[today, adjusted_usd, adjusted_eur]]
